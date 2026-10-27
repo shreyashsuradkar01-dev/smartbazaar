@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Bazzar - Your Online Shopping Destination</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+        .hero-banner {
+            height: 60vh;
+            background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://placehold.co/1600x900/e2e8f0/64748b?text=Sale+50%25+Off');
+            background-size: cover;
+            background-position: center;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .quick-view-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.5);
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            max-width: 800px;
+        }
+        .toast-notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1001;
+            display: none;
+            transition: all 0.5s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <nav class="container mx-auto px-4 lg:px-8 py-4 flex justify-between items-center">
+            <div class="text-2xl font-bold text-indigo-600 cursor-pointer" onclick="showPage('home-page')">
+                <i class="fas fa-shopping-basket mr-2"></i>Smart Bazzar
+            </div>
+            <div class="hidden lg:flex items-center space-x-6">
+                <a href="#" class="text-gray-600 hover:text-indigo-600" onclick="showPage('home-page')">Home</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600" onclick="showPage('category-page')">Categories</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600" onclick="showPage('product-listing-page', { all: true })">Products</a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600">Deals</a>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="relative hidden md:block">
+                    <input type="text" id="search-bar" onkeyup="handleSearch(event)" placeholder="Search for products..." class="w-full md:w-64 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <div id="search-suggestions" class="absolute hidden w-full bg-white border border-gray-200 rounded-lg mt-1 shadow-lg z-10"></div>
+                </div>
+                <a href="#" class="text-gray-600 hover:text-indigo-600 relative" onclick="showPage('cart-page')">
+                    <i class="fas fa-shopping-cart text-xl"></i>
+                    <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+                </a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600" onclick="showPage('wishlist-page')">
+                    <i class="fas fa-heart text-xl"></i>
+                </a>
+                <a href="#" class="text-gray-600 hover:text-indigo-600" onclick="showPage('login-page')">
+                    <i class="fas fa-user-circle text-xl"></i>
+                </a>
+            </div>
+             <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="lg:hidden text-gray-600 hover:text-indigo-600">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </nav>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden lg:hidden bg-white border-t border-gray-200">
+            <div class="px-4 py-2">
+                 <div class="relative my-2">
+                    <input type="text" id="mobile-search-bar" onkeyup="handleSearch(event)" placeholder="Search..." class="w-full px-4 py-2 border rounded-full">
+                    <i class="fas fa-search absolute right-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                </div>
+                <a href="#" class="block py-2 text-gray-600 hover:text-indigo-600" onclick="showPage('home-page')">Home</a>
+                <a href="#" class="block py-2 text-gray-600 hover:text-indigo-600" onclick="showPage('category-page')">Categories</a>
+                <a href="#" class="block py-2 text-gray-600 hover:text-indigo-600" onclick="showPage('product-listing-page', { all: true })">Products</a>
+            </div>
+        </div>
+    </header>
+
+    <main id="main-content" class="container mx-auto px-4 lg:px-8 py-8">
+        
+        <!-- Home Page -->
+        <div id="home-page" class="page fade-in">
+            <!-- Hero Section -->
+            <section class="hero-banner rounded-lg flex items-center justify-center text-white text-center mb-12">
+                <div>
+                    <h1 class="text-4xl md:text-6xl font-bold mb-4">Biggest Sale of the Season</h1>
+                    <p class="text-lg md:text-xl mb-6">Get up to 50% off on your favorite brands. Limited time offer!</p>
+                    <button class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-full transition duration-300" onclick="showPage('product-listing-page', { all: true })">Shop Now</button>
+                </div>
+            </section>
+
+            <!-- Featured Categories -->
+            <section class="mb-12">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Featured Categories</h2>
+                <div id="featured-categories" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
+                    <!-- Categories will be injected here -->
+                </div>
+            </section>
+            
+            <!-- Trending Deals -->
+            <section>
+                <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Trending Deals</h2>
+                <div id="trending-products" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                    <!-- Products will be injected here by JS -->
+                </div>
+            </section>
+        </div>
+
+        <!-- Category Page -->
+        <div id="category-page" class="page hidden fade-in">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">Shop by Category</h1>
+            <div id="all-categories" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                <!-- All category cards will be injected by JS -->
+            </div>
+        </div>
+        
+        <!-- Product Listing Page -->
+        <div id="product-listing-page" class="page hidden fade-in">
+            <h1 id="listing-page-title" class="text-3xl font-bold text-gray-800 mb-4">Products</h1>
+            <!-- Filters and Sorting -->
+            <div class="bg-white p-4 rounded-lg shadow-sm mb-6 flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
+                <div class="flex items-center space-x-4">
+                    <span class="font-semibold text-gray-700">Sort by:</span>
+                    <select id="sort-options" class="border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                        <option value="popularity">Popularity</option>
+                        <option value="price-asc">Price: Low to High</option>
+                        <option value="price-desc">Price: High to Low</option>
+                        <option value="rating">Rating</option>
+                    </select>
+                </div>
+                 <div class="flex items-center space-x-4">
+                    <span class="font-semibold text-gray-700">Price Range:</span>
+                    <input type="range" id="price-filter" min="0" max="5000" value="5000" class="w-48">
+                    <span id="price-value" class="font-semibold text-indigo-600">₹5000</span>
+                </div>
+            </div>
+            <div id="product-list" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Products will be injected here by JS -->
+            </div>
+        </div>
+
+        <!-- Product Detail Page -->
+        <div id="product-detail-page" class="page hidden fade-in">
+            <!-- Product detail content will be injected here -->
+        </div>
+
+        <!-- Cart Page -->
+        <div id="cart-page" class="page hidden fade-in">
+            <h1 class="text-3xl font-bold text-gray-800 mb-8">Your Shopping Cart</h1>
+            <div id="cart-items-container" class="bg-white rounded-lg shadow-md p-6">
+                <!-- Cart items will be injected here -->
+            </div>
+            <div id="cart-summary" class="mt-8">
+                <!-- Cart summary will be injected here -->
+            </div>
+        </div>
+        
+        <!-- Checkout Page -->
+        <div id="checkout-page" class="page hidden fade-in">
+             <h1 class="text-3xl font-bold text-gray-800 mb-8 text-center">Checkout</h1>
+             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                 <div class="lg:col-span-2 bg-white p-6 rounded-lg shadow-md">
+                     <h2 class="text-2xl font-semibold mb-6">Shipping Details</h2>
+                     <form id="checkout-form">
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                             <input type="text" placeholder="First Name" class="w-full p-3 border rounded-md" required>
+                             <input type="text" placeholder="Last Name" class="w-full p-3 border rounded-md" required>
+                         </div>
+                         <input type="email" placeholder="Email Address" class="w-full p-3 border rounded-md mb-4" required>
+                         <input type="text" placeholder="Shipping Address" class="w-full p-3 border rounded-md mb-4" required>
+                         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                             <input type="text" placeholder="City" class="w-full p-3 border rounded-md" required>
+                             <input type="text" placeholder="State / Province" class="w-full p-3 border rounded-md" required>
+                             <input type="text" placeholder="Zip / Postal Code" class="w-full p-3 border rounded-md" required>
+                         </div>
+                         <h2 class="text-2xl font-semibold mb-6 mt-8">Payment Method</h2>
+                         <div class="space-y-4">
+                            <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50">
+                                <input type="radio" name="payment" class="form-radio text-indigo-600" checked>
+                                <span class="ml-4 text-gray-700 font-medium">Credit / Debit Card</span>
+                            </label>
+                             <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50">
+                                <input type="radio" name="payment" class="form-radio text-indigo-600">
+                                <span class="ml-4 text-gray-700 font-medium">PayPal</span>
+                            </label>
+                             <label class="flex items-center p-4 border rounded-lg cursor-pointer hover:bg-indigo-50">
+                                <input type="radio" name="payment" class="form-radio text-indigo-600">
+                                <span class="ml-4 text-gray-700 font-medium">Cash on Delivery</span>
+                            </label>
+                         </div>
+                     </form>
+                 </div>
+                 <div class="lg:col-span-1 bg-white p-6 rounded-lg shadow-md h-fit">
+                     <h2 class="text-2xl font-semibold mb-6">Order Summary</h2>
+                     <div id="checkout-summary"></div>
+                     <button onclick="placeOrder()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg mt-6 hover:bg-indigo-700 transition-colors">Place Order</button>
+                 </div>
+             </div>
+        </div>
+        
+        <!-- Login/Register Pages -->
+        <div id="login-page" class="page hidden fade-in max-w-md mx-auto">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Login</h2>
+                <form>
+                    <input type="email" placeholder="Email Address" class="w-full p-3 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <input type="password" placeholder="Password" class="w-full p-3 mb-6 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors">Log In</button>
+                    <p class="text-center mt-4 text-gray-600">Don't have an account? <a href="#" onclick="showPage('register-page')" class="text-indigo-600 font-semibold">Sign up</a></p>
+                </form>
+            </div>
+        </div>
+        <div id="register-page" class="page hidden fade-in max-w-md mx-auto">
+            <div class="bg-white p-8 rounded-lg shadow-md">
+                <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Create Account</h2>
+                <form>
+                    <input type="text" placeholder="Full Name" class="w-full p-3 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <input type="email" placeholder="Email Address" class="w-full p-3 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <input type="password" placeholder="Password" class="w-full p-3 mb-4 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <input type="password" placeholder="Confirm Password" class="w-full p-3 mb-6 border rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400">
+                    <button type="submit" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors">Sign Up</button>
+                    <p class="text-center mt-4 text-gray-600">Already have an account? <a href="#" onclick="showPage('login-page')" class="text-indigo-600 font-semibold">Log in</a></p>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Wishlist Page -->
+        <div id="wishlist-page" class="page hidden fade-in">
+             <h1 class="text-3xl font-bold text-gray-800 mb-8">My Wishlist</h1>
+             <div id="wishlist-items" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Wishlist items will be injected here -->
+             </div>
+        </div>
+        
+        <!-- Order History Page -->
+        <div id="order-history-page" class="page hidden fade-in">
+            <!-- Order history content -->
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12">
+        <div class="container mx-auto px-4 lg:px-8 py-10">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Smart Bazzar</h3>
+                    <p class="text-gray-400">Your one-stop shop for everything you need. Quality products, unbeatable prices.</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul>
+                        <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white">About Us</a></li>
+                        <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white">Contact Us</a></li>
+                        <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white">FAQ</a></li>
+                        <li class="mb-2"><a href="#" class="text-gray-400 hover:text-white">Terms of Service</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Contact Us</h3>
+                    <p class="text-gray-400 mb-2"><i class="fas fa-map-marker-alt mr-2"></i>123 Shopping St, Commerce City</p>
+                    <p class="text-gray-400 mb-2"><i class="fas fa-phone mr-2"></i>(123) 456-7890</p>
+                    <p class="text-gray-400"><i class="fas fa-envelope mr-2"></i>support@smartbazzar.com</p>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Newsletter</h3>
+                    <p class="text-gray-400 mb-3">Subscribe for the latest deals and offers.</p>
+                    <div class="flex">
+                        <input type="email" placeholder="Your Email" class="w-full px-3 py-2 text-gray-800 rounded-l-md focus:outline-none">
+                        <button class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 rounded-r-md">Subscribe</button>
+                    </div>
+                    <div class="flex space-x-4 mt-4">
+                        <a href="#" class="text-gray-400 hover:text-white text-2xl"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white text-2xl"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-gray-400 hover:text-white text-2xl"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-700 mt-8 pt-6 text-center text-gray-500">
+                <p>&copy; 2024 Smart Bazzar. All Rights Reserved.</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Quick View Modal -->
+    <div id="quick-view-modal" class="quick-view-modal fade-in">
+        <div id="quick-view-content" class="modal-content bg-white w-full mx-4 p-6 rounded-lg shadow-xl relative">
+            <!-- Modal content injected by JS -->
+        </div>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div id="toast-notification" class="toast-notification bg-green-500 text-white py-2 px-6 rounded-lg shadow-lg">
+        <p id="toast-message"></p>
+    </div>
+
+
+    <script>
+        // --- DATA ---
+        const categories = [
+            { id: 1, name: 'Groceries', icon: 'fas fa-carrot' },
+            { id: 2, name: 'Electronics', icon: 'fas fa-tv' },
+            { id: 3, name: 'Fashion', icon: 'fas fa-tshirt' },
+            { id: 4, name: 'Home', icon: 'fas fa-home' },
+            { id: 5, name: 'Stationery', icon: 'fas fa-pencil-alt' },
+            { id: 6, name: 'Beauty', icon: 'fas fa-spa' },
+            { id: 7, name: 'Toys', icon: 'fas fa-gamepad' },
+            { id: 8, name: 'Sports', icon: 'fas fa-futbol' }
+        ];
+
+        const products = [
+            // Groceries
+            { id: 1, name: 'Organic Apples', price: 3.99, categoryId: 1, rating: 4.5, image: 'https://placehold.co/300x300/a7f3d0/166534?text=Apples', discount: 10, stock: 50 },
+            { id: 2, name: 'Whole Wheat Bread', price: 2.49, categoryId: 1, rating: 4.8, image: 'https://placehold.co/300x300/fef08a/854d0e?text=Bread', discount: 0, stock: 30 },
+            // Electronics
+            { id: 3, name: '4K Smart TV', price: 499.99, categoryId: 2, rating: 4.9, image: 'https://placehold.co/300x300/bae6fd/0c4a6e?text=Smart+TV', discount: 15, stock: 10 },
+            { id: 4, name: 'Wireless Headphones', price: 89.99, categoryId: 2, rating: 4.7, image: 'https://placehold.co/300x300/e9d5ff/581c87?text=Headphones', discount: 0, stock: 25 },
+            { id: 5, name: 'Gaming Laptop', price: 1299.99, categoryId: 2, rating: 4.8, image: 'https://placehold.co/300x300/a5f3fc/155e75?text=Laptop', discount: 5, stock: 5 },
+             // Fashion
+            { id: 6, name: 'Men\'s Denim Jacket', price: 75.00, categoryId: 3, rating: 4.6, image: 'https://placehold.co/300x300/fecaca/991b1b?text=Jacket', discount: 20, stock: 40 },
+            { id: 7, name: 'Women\'s Summer Dress', price: 45.50, categoryId: 3, rating: 4.8, image: 'https://placehold.co/300x300/fed7aa/9a3412?text=Dress', discount: 0, stock: 50 },
+            // Home Essentials
+            { id: 8, name: 'Robot Vacuum Cleaner', price: 249.99, categoryId: 4, rating: 4.9, image: 'https://placehold.co/300x300/d1d5db/1f2937?text=Vacuum', discount: 10, stock: 15 },
+            // Stationery
+            { id: 9, name: 'Premium Notebook Set', price: 19.99, categoryId: 5, rating: 4.7, image: 'https://placehold.co/300x300/e0e7ff/3730a3?text=Notebooks', discount: 0, stock: 100 },
+            // Beauty
+            { id: 10, name: 'Vitamin C Face Serum', price: 24.99, categoryId: 6, rating: 4.9, image: 'https://placehold.co/300x300/fbcfe8/9d266f?text=Serum', discount: 5, stock: 60 },
+            // Toys
+            { id: 11, name: 'LEGO Classic Set', price: 59.99, categoryId: 7, rating: 4.9, image: 'https://placehold.co/300x300/fef9c3/b45309?text=LEGO', discount: 10, stock: 35 },
+            // Sports
+            { id: 12, name: 'Yoga Mat', price: 29.99, categoryId: 8, rating: 4.7, image: 'https://placehold.co/300x300/ccfbf1/0f766e?text=Yoga+Mat', discount: 0, stock: 80 },
+        ];
+        
+        // --- STATE MANAGEMENT ---
+        let cart = [];
+        let wishlist = [];
+        let currentPage = 'home-page';
+        let currentProductListing = [];
+        
+        // --- INITIALIZATION ---
+        document.addEventListener('DOMContentLoaded', () => {
+            renderFeaturedCategories();
+            renderTrendingProducts();
+            updateCartCount();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('sort-options').addEventListener('change', sortAndRenderProducts);
+            document.getElementById('price-filter').addEventListener('input', (e) => {
+                document.getElementById('price-value').textContent = `₹${e.target.value}`;
+                filterAndRenderProducts();
+            });
+            document.getElementById('mobile-menu-button').addEventListener('click', () => {
+                document.getElementById('mobile-menu').classList.toggle('hidden');
+            });
+        }
+        
+        // --- NAVIGATION ---
+        function showPage(pageId, params = {}) {
+            document.querySelectorAll('.page').forEach(page => page.classList.add('hidden'));
+            const targetPage = document.getElementById(pageId);
+            if (targetPage) {
+                targetPage.classList.remove('hidden');
+                currentPage = pageId;
+                window.scrollTo(0, 0);
+
+                if (pageId === 'product-listing-page') {
+                    renderProductListing(params);
+                } else if (pageId === 'category-page') {
+                    renderAllCategories();
+                } else if(pageId === 'cart-page') {
+                    renderCartPage();
+                } else if (pageId === 'product-detail-page') {
+                    renderProductDetailPage(params.productId);
+                } else if (pageId === 'checkout-page') {
+                    renderCheckoutSummary();
+                } else if (pageId === 'wishlist-page') {
+                    renderWishlist();
+                }
+            }
+             // Close mobile menu on navigation
+            document.getElementById('mobile-menu').classList.add('hidden');
+        }
+
+        // --- RENDERING FUNCTIONS ---
+        function getStarRating(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                if (i <= rating) {
+                    stars += '<i class="fas fa-star text-yellow-400"></i>';
+                } else if (i - 0.5 <= rating) {
+                    stars += '<i class="fas fa-star-half-alt text-yellow-400"></i>';
+                } else {
+                    stars += '<i class="far fa-star text-yellow-400"></i>';
+                }
+            }
+            return stars;
+        }
+
+        function createProductCard(product) {
+            const salePrice = product.price * (1 - product.discount / 100);
+            const isWishlisted = wishlist.includes(product.id);
+            return `
+                <div class="bg-white rounded-lg shadow-md overflow-hidden transform hover:-translate-y-2 transition-transform duration-300 group">
+                    <div class="relative">
+                        <img src="${product.image}" alt="${product.name}" class="w-full h-48 object-cover">
+                        ${product.discount > 0 ? `<div class="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">${product.discount}% OFF</div>` : ''}
+                        <div class="absolute top-2 right-2 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onclick="toggleWishlist(${product.id}, event)" class="bg-white rounded-full p-2 shadow-md hover:bg-gray-100">
+                                <i class="${isWishlisted ? 'fas' : 'far'} fa-heart text-red-500"></i>
+                            </button>
+                             <button onclick="showQuickView(${product.id}, event)" class="bg-white rounded-full p-2 shadow-md hover:bg-gray-100">
+                                <i class="fas fa-eye text-gray-600"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-lg text-gray-800 truncate cursor-pointer" onclick="showPage('product-detail-page', { productId: ${product.id} })">${product.name}</h3>
+                        <div class="flex items-center my-2">
+                           ${getStarRating(product.rating)}
+                           <span class="text-xs text-gray-500 ml-2">(${product.rating})</span>
+                        </div>
+                        <div class="flex items-baseline space-x-2">
+                            <p class="text-xl font-bold text-indigo-600">₹${salePrice.toFixed(2)}</p>
+                            ${product.discount > 0 ? `<p class="text-sm text-gray-500 line-through">₹${product.price.toFixed(2)}</p>` : ''}
+                        </div>
+                        <button onclick="addToCart(${product.id}, event)" class="mt-4 w-full bg-indigo-600 text-white font-bold py-2 rounded-lg hover:bg-indigo-700 transition-colors">Add to Cart</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderFeaturedCategories() {
+            const container = document.getElementById('featured-categories');
+            container.innerHTML = categories.slice(0, 6).map(cat => `
+                <div class="text-center p-4 bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('product-listing-page', { categoryId: ${cat.id} })">
+                    <i class="${cat.icon} text-4xl text-indigo-500 mb-2"></i>
+                    <h4 class="font-semibold text-gray-700">${cat.name}</h4>
+                </div>
+            `).join('');
+        }
+        
+        function renderAllCategories() {
+            const container = document.getElementById('all-categories');
+             container.innerHTML = categories.map(cat => `
+                <div class="text-center p-4 bg-white rounded-lg shadow-sm hover:shadow-lg transition-shadow cursor-pointer" onclick="showPage('product-listing-page', { categoryId: ${cat.id} })">
+                    <i class="${cat.icon} text-4xl text-indigo-500 mb-2"></i>
+                    <h4 class="font-semibold text-gray-700">${cat.name}</h4>
+                </div>
+            `).join('');
+        }
+
+        function renderTrendingProducts() {
+            const container = document.getElementById('trending-products');
+            const trending = products.filter(p => p.discount > 10).slice(0, 4);
+            container.innerHTML = trending.map(createProductCard).join('');
+        }
+
+        function renderProductListing(params) {
+            const titleEl = document.getElementById('listing-page-title');
+            if (params.all) {
+                currentProductListing = [...products];
+                titleEl.textContent = "All Products";
+            } else if (params.categoryId) {
+                const category = categories.find(c => c.id === params.categoryId);
+                currentProductListing = products.filter(p => p.categoryId === params.categoryId);
+                titleEl.textContent = category.name;
+            } else if(params.query) {
+                currentProductListing = products.filter(p => p.name.toLowerCase().includes(params.query.toLowerCase()));
+                titleEl.textContent = `Search results for "${params.query}"`;
+            }
+            sortAndRenderProducts();
+        }
+
+        function sortAndRenderProducts() {
+            const sortValue = document.getElementById('sort-options').value;
+            let sortedProducts = [...currentProductListing];
+
+            switch(sortValue) {
+                case 'price-asc':
+                    sortedProducts.sort((a, b) => (a.price * (1 - a.discount / 100)) - (b.price * (1 - b.discount / 100)));
+                    break;
+                case 'price-desc':
+                    sortedProducts.sort((a, b) => (b.price * (1 - b.discount / 100)) - (a.price * (1 - a.discount / 100)));
+                    break;
+                case 'rating':
+                    sortedProducts.sort((a, b) => b.rating - a.rating);
+                    break;
+                case 'popularity':
+                default:
+                    // Simple popularity = high rating and some discount
+                    sortedProducts.sort((a, b) => (b.rating + b.discount/10) - (a.rating + a.discount/10));
+                    break;
+            }
+            
+            const priceLimit = document.getElementById('price-filter').value;
+            const filtered = sortedProducts.filter(p => (p.price * (1 - p.discount / 100)) <= priceLimit);
+
+            const container = document.getElementById('product-list');
+            if(filtered.length > 0) {
+                 container.innerHTML = filtered.map(createProductCard).join('');
+            } else {
+                container.innerHTML = '<p class="text-center text-gray-500 col-span-full">No products found matching your criteria.</p>';
+            }
+        }
+        
+        function filterAndRenderProducts() {
+             sortAndRenderProducts(); // Re-use the combined logic
+        }
+
+        function renderProductDetailPage(productId) {
+            const product = products.find(p => p.id === productId);
+            if (!product) return;
+
+            const salePrice = product.price * (1 - product.discount / 100);
+            const container = document.getElementById('product-detail-page');
+            container.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <img src="${product.image.replace('300x300', '600x600')}" alt="${product.name}" class="w-full rounded-lg shadow-lg">
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold text-gray-800 mb-2">${product.name}</h1>
+                        <div class="flex items-center mb-4">
+                            ${getStarRating(product.rating)}
+                            <span class="text-gray-600 ml-3">(${product.rating} rating)</span>
+                        </div>
+                        <div class="flex items-baseline space-x-3 mb-4">
+                            <p class="text-4xl font-bold text-indigo-600">₹${salePrice.toFixed(2)}</p>
+                            ${product.discount > 0 ? `<p class="text-xl text-gray-500 line-through">₹${product.price.toFixed(2)}</p>` : ''}
+                        </div>
+                        <p class="text-gray-600 mb-6">This is a detailed description of the ${product.name}. It highlights the key features, benefits, and quality of the product, ensuring customers have all the information they need.</p>
+                        <p class="font-semibold mb-4">Stock Status: <span class="text-green-600">${product.stock > 0 ? 'In Stock' : 'Out of Stock'}</span></p>
+                        <div class="flex items-center space-x-4">
+                            <button onclick="addToCart(${product.id})" class="bg-indigo-600 text-white font-bold py-3 px-8 rounded-lg hover:bg-indigo-700 transition-colors">Add to Cart</button>
+                            <button class="bg-green-500 text-white font-bold py-3 px-8 rounded-lg hover:bg-green-600 transition-colors">Buy Now</button>
+                            <button onclick="toggleWishlist(${product.id})" class="border border-gray-300 rounded-full p-3 hover:bg-gray-100">
+                               <i class="${wishlist.includes(product.id) ? 'fas' : 'far'} fa-heart text-2xl text-red-500"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Customer Reviews -->
+                <div class="mt-12 bg-white p-8 rounded-lg shadow-md">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Customer Reviews</h2>
+                    <!-- Review 1 -->
+                    <div class="border-b pb-4 mb-4">
+                        <div class="flex items-center mb-2">
+                           ${getStarRating(5)}
+                           <h3 class="font-semibold ml-3">Absolutely fantastic!</h3>
+                        </div>
+                        <p class="text-gray-600">Great quality product, exceeded my expectations. Fast delivery too!</p>
+                        <p class="text-sm text-gray-400 mt-2">By John Doe on Sep 20, 2024</p>
+                    </div>
+                    <!-- Review 2 -->
+                    <div>
+                        <div class="flex items-center mb-2">
+                            ${getStarRating(4.5)}
+                           <h3 class="font-semibold ml-3">Very good value</h3>
+                        </div>
+                        <p class="text-gray-600">Happy with my purchase. It's exactly as described on the website.</p>
+                        <p class="text-sm text-gray-400 mt-2">By Jane Smith on Sep 18, 2024</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCartPage() {
+            const container = document.getElementById('cart-items-container');
+            const summaryContainer = document.getElementById('cart-summary');
+            
+            if (cart.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500">Your cart is empty.</p>';
+                summaryContainer.innerHTML = '';
+                return;
+            }
+
+            container.innerHTML = cart.map(item => {
+                const product = products.find(p => p.id === item.id);
+                const salePrice = product.price * (1 - product.discount / 100);
+                return `
+                    <div class="flex items-center justify-between border-b py-4">
+                        <div class="flex items-center">
+                            <img src="${product.image}" alt="${product.name}" class="w-20 h-20 object-cover rounded-md mr-4">
+                            <div>
+                                <h4 class="font-semibold text-lg">${product.name}</h4>
+                                <p class="text-gray-500">₹${salePrice.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center border rounded-md">
+                                <button onclick="updateQuantity(${product.id}, -1)" class="px-3 py-1 text-lg">-</button>
+                                <span class="px-4">${item.quantity}</span>
+                                <button onclick="updateQuantity(${product.id}, 1)" class="px-3 py-1 text-lg">+</button>
+                            </div>
+                            <p class="font-bold text-lg w-24 text-right">₹${(salePrice * item.quantity).toFixed(2)}</p>
+                            <button onclick="removeFromCart(${product.id})" class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            const subtotal = cart.reduce((acc, item) => {
+                const product = products.find(p => p.id === item.id);
+                const salePrice = product.price * (1 - product.discount / 100);
+                return acc + (salePrice * item.quantity);
+            }, 0);
+            const shipping = 5.00;
+            const total = subtotal + shipping;
+
+            summaryContainer.innerHTML = `
+                 <div class="max-w-md ml-auto bg-white p-6 rounded-lg shadow-md">
+                     <h2 class="text-2xl font-bold mb-4">Cart Summary</h2>
+                     <div class="flex justify-between mb-2">
+                         <span class="text-gray-600">Subtotal</span>
+                         <span class="font-semibold">₹${subtotal.toFixed(2)}</span>
+                     </div>
+                     <div class="flex justify-between mb-4">
+                         <span class="text-gray-600">Shipping</span>
+                         <span class="font-semibold">₹${shipping.toFixed(2)}</span>
+                     </div>
+                     <div class="flex justify-between font-bold text-xl border-t pt-4">
+                         <span>Total</span>
+                         <span>₹${total.toFixed(2)}</span>
+                     </div>
+                     <button onclick="showPage('checkout-page')" class="mt-6 w-full bg-indigo-600 text-white font-bold py-3 rounded-lg hover:bg-indigo-700 transition-colors">Proceed to Checkout</button>
+                </div>
+            `;
+        }
+        
+        function renderCheckoutSummary() {
+            const summaryContainer = document.getElementById('checkout-summary');
+            if (cart.length === 0) {
+                summaryContainer.innerHTML = '<p class="text-center text-gray-500">Your cart is empty.</p>';
+                return;
+            }
+            const subtotal = cart.reduce((acc, item) => {
+                const product = products.find(p => p.id === item.id);
+                const salePrice = product.price * (1 - product.discount / 100);
+                return acc + (salePrice * item.quantity);
+            }, 0);
+            const shipping = 5.00;
+            const total = subtotal + shipping;
+            
+             summaryContainer.innerHTML = `
+                ${cart.map(item => {
+                    const product = products.find(p => p.id === item.id);
+                    return `
+                    <div class="flex items-center justify-between mb-3">
+                         <div class="flex items-center">
+                            <img src="${product.image}" class="w-12 h-12 rounded-md mr-3">
+                            <div>
+                               <p class="font-semibold">${product.name}</p>
+                               <p class="text-sm text-gray-500">Qty: ${item.quantity}</p>
+                            </div>
+                        </div>
+                        <p class="font-semibold">₹${(product.price * (1-product.discount/100) * item.quantity).toFixed(2)}</p>
+                    </div>
+                    `
+                }).join('')}
+                 <div class="flex justify-between mt-4 border-t pt-2">
+                     <span class="text-gray-600">Subtotal</span>
+                     <span class="font-semibold">₹${subtotal.toFixed(2)}</span>
+                 </div>
+                 <div class="flex justify-between">
+                     <span class="text-gray-600">Shipping</span>
+                     <span class="font-semibold">₹${shipping.toFixed(2)}</span>
+                 </div>
+                 <div class="flex justify-between font-bold text-xl border-t pt-4 mt-2">
+                     <span>Total</span>
+                     <span>₹${total.toFixed(2)}</span>
+                 </div>
+            `;
+        }
+        
+        function renderWishlist() {
+            const container = document.getElementById('wishlist-items');
+            if(wishlist.length === 0) {
+                 container.innerHTML = '<p class="text-center text-gray-500 col-span-full">Your wishlist is empty.</p>';
+                 return;
+            }
+            const wishlistedProducts = products.filter(p => wishlist.includes(p.id));
+            container.innerHTML = wishlistedProducts.map(createProductCard).join('');
+        }
+
+        // --- CART LOGIC ---
+        function addToCart(productId, event) {
+            event && event.stopPropagation();
+            const existingItem = cart.find(item => item.id === productId);
+            if (existingItem) {
+                existingItem.quantity++;
+            } else {
+                cart.push({ id: productId, quantity: 1 });
+            }
+            updateCartCount();
+            showToast('Item added to cart!');
+        }
+
+        function removeFromCart(productId) {
+            cart = cart.filter(item => item.id !== productId);
+            updateCartCount();
+            renderCartPage();
+            showToast('Item removed from cart', 'error');
+        }
+
+        function updateQuantity(productId, change) {
+            const cartItem = cart.find(item => item.id === productId);
+            if (cartItem) {
+                cartItem.quantity += change;
+                if (cartItem.quantity <= 0) {
+                    removeFromCart(productId);
+                } else {
+                    renderCartPage();
+                }
+            }
+        }
+
+        function updateCartCount() {
+            const count = cart.reduce((acc, item) => acc + item.quantity, 0);
+            document.getElementById('cart-count').textContent = count;
+        }
+
+        // --- WISHLIST LOGIC ---
+        function toggleWishlist(productId, event) {
+            event && event.stopPropagation();
+            const index = wishlist.indexOf(productId);
+            if(index > -1) {
+                wishlist.splice(index, 1);
+                 showToast('Removed from wishlist', 'info');
+            } else {
+                wishlist.push(productId);
+                showToast('Added to wishlist!');
+            }
+            // Re-render the current view to update the heart icon
+            if(currentPage === 'product-listing-page') sortAndRenderProducts();
+            if(currentPage === 'home-page') renderTrendingProducts();
+            if(currentPage === 'wishlist-page') renderWishlist();
+            if(currentPage === 'product-detail-page') renderProductDetailPage(productId);
+        }
+        
+        // --- SEARCH ---
+        function handleSearch(event) {
+            const query = event.target.value.toLowerCase();
+            const suggestionsContainer = document.getElementById('search-suggestions');
+            
+            if (query.length < 2) {
+                suggestionsContainer.innerHTML = '';
+                suggestionsContainer.classList.add('hidden');
+                return;
+            }
+            
+            const suggestions = products.filter(p => p.name.toLowerCase().includes(query)).slice(0, 5);
+            
+            if(suggestions.length > 0) {
+                suggestionsContainer.innerHTML = suggestions.map(p => 
+                    `<div class="p-2 hover:bg-gray-100 cursor-pointer" onclick="showPage('product-detail-page', { productId: ${p.id} })">${p.name}</div>`
+                ).join('');
+                suggestionsContainer.classList.remove('hidden');
+            } else {
+                suggestionsContainer.classList.add('hidden');
+            }
+
+            if (event.key === 'Enter') {
+                showPage('product-listing-page', { query: query });
+                suggestionsContainer.classList.add('hidden');
+                event.target.value = '';
+            }
+        }
+        
+        // --- MODAL & TOAST ---
+        function showQuickView(productId, event) {
+            event && event.stopPropagation();
+            const product = products.find(p => p.id === productId);
+            if(!product) return;
+            
+            const modal = document.getElementById('quick-view-modal');
+            const content = document.getElementById('quick-view-content');
+            const salePrice = product.price * (1 - product.discount / 100);
+            
+            content.innerHTML = `
+                <button onclick="closeQuickView()" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-2xl">&times;</button>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <img src="${product.image}" alt="${product.name}" class="w-full rounded-lg">
+                    <div>
+                        <h2 class="text-2xl font-bold mb-2">${product.name}</h2>
+                        <div class="flex items-center mb-4">${getStarRating(product.rating)}</div>
+                        <p class="text-3xl font-bold text-indigo-600 mb-4">₹${salePrice.toFixed(2)}</p>
+                        <p class="text-gray-600 mb-6">Quick overview of the product's main features and benefits.</p>
+                        <button onclick="addToCart(${product.id}); closeQuickView();" class="w-full bg-indigo-600 text-white font-bold py-2 rounded-lg hover:bg-indigo-700">Add to Cart</button>
+                    </div>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+        
+        function closeQuickView() {
+            document.getElementById('quick-view-modal').style.display = 'none';
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast-notification');
+            const toastMessage = document.getElementById('toast-message');
+            
+            toastMessage.textContent = message;
+            toast.className = 'toast-notification text-white py-2 px-6 rounded-lg shadow-lg'; // Reset classes
+            if (type === 'success') {
+                toast.classList.add('bg-green-500');
+            } else if (type === 'error') {
+                 toast.classList.add('bg-red-500');
+            } else {
+                 toast.classList.add('bg-blue-500');
+            }
+            
+            toast.style.display = 'block';
+            setTimeout(() => {
+                toast.style.display = 'none';
+            }, 3000);
+        }
+        
+        // --- CHECKOUT ---
+        function placeOrder() {
+            if(cart.length === 0) {
+                 showToast('Your cart is empty!', 'error');
+                 return;
+            }
+            // Basic form validation
+            const form = document.getElementById('checkout-form');
+            if(form.checkValidity()){
+                cart = [];
+                updateCartCount();
+                showToast('Order placed successfully! Thank you for shopping.', 'success');
+                showPage('home-page');
+            } else {
+                 showToast('Please fill in all required shipping details.', 'error');
+                 form.reportValidity();
+            }
+        }
+        
+        // Close modal if clicked outside of content
+        window.onclick = function(event) {
+            const modal = document.getElementById('quick-view-modal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+
+</body>
+</html>
+
